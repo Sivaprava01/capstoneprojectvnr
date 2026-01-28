@@ -2,6 +2,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { userRouter } from './APIs/UserAPI.js';
 import cors from 'cors';
+import { authorRouter } from './APIs/AuthorAPI.js';
+import {clerkMiddleware} from '@clerk/express';
+import {config} from 'dotenv';
 
 
 // create express app FIRST
@@ -13,7 +16,9 @@ const PORT = 4000;
 // middleware
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
+app.use(clerkMiddleware());
 app.use('/user-api', userRouter);
+app.use('/author-api', authorRouter);
 
 // test route
 app.get("/test", (req, res) => {
