@@ -1,38 +1,50 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import { userRouter } from './APIs/UserAPI.js';
-import cors from 'cors';
-import { authorRouter } from './APIs/AuthorAPI.js';
-import {clerkMiddleware} from '@clerk/express';
-import {config} from 'dotenv';
+import express from "express";
+import mongoose from "mongoose";
+import { userRouter } from "./APIs/UserAPI.js";
+import {authorRouter} from './APIs/AuthorAPI.js'
+import cors from "cors";
+import {clerkMiddleware} from '@clerk/express'
+import {config} from 'dotenv'
+config()
 
-
-// create express app FIRST
+//create express app
 const app = express();
-
-// port number
-const PORT = 4000;
-
-// middleware
-app.use(cors({ origin: "http://localhost:5173" }));
+//parse body of req
+app.use(cors(["http://localhost:5173"]));
 app.use(express.json());
-app.use(clerkMiddleware());
-app.use('/user-api', userRouter);
-app.use('/author-api', authorRouter);
+app.use(clerkMiddleware())
+app.use("/user-api", userRouter);
+app.use("/author-api",authorRouter)
 
-// test route
-app.get("/test", (req, res) => {
-  res.json({ message: "Server is working fine!" });
-});
-
-// db connection
+//port number
+const port = 4000;
+//db connection
 async function connectDB() {
   await mongoose.connect("mongodb://localhost:27017/vnrblog2026");
   console.log("DB connection success");
-
-  app.listen(PORT, () =>
-    console.log(`Server is running on port ${PORT}`)
-  );
+  //assign port number
+  app.listen(port, () => console.log(`server listening on port ${port} `));
 }
 
 connectDB();
+
+//test route (removed later)
+app.get("/test", (req, res) => {
+  res.json({ message: "From Test route" });
+});
+
+//Error handler
+app.use((err, req, res, next) => {
+  console.log(err);
+  if (err?.status === 401) {
+    return res.status(401).json({
+      error: "UNAUTHORIZED",
+      message: "Authentication required",
+    });
+  }
+
+  res.status(500).json({
+    error: "INTERNAL_SERVER_ERROR",
+    message: err.message,
+  });
+});
